@@ -23,14 +23,33 @@ modules:
           srv-url: ${default-url}
     requires:
       - name: FirstHANAApp-db
+      - name: FirstHANAApp-auth
 
   - name: FirstHANAApp-db-deployer
     type: hdb
     path: db
     parameters:
       buildpack: nodejs_buildpack
+    build-parameters:
+      ignore: ["default-env.json", ".env"]
     requires:
       - name: FirstHANAApp-db
+
+  - name: FirstHANAApp
+    type: approuter.nodejs
+    path: app/
+    parameters:
+      keep-existing-routes: true
+      disk-quota: 256M
+      memory: 256M
+    requires:
+      - name: srv-api
+        group: destinations
+        properties:
+          name: srv-api # must be used in xs-app.json as well
+          url: ~{srv-url}
+          forwardAuthToken: true
+      - name: FirstHANAApp-auth
 
 resources:
   - name: FirstHANAApp-db
@@ -38,3 +57,12 @@ resources:
     parameters:
       service: hana
       service-plan: hdi-shared
+  - name: FirstHANAApp-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: FirstHANAApp-${org}-${space}
+        tenant-mode: dedicated
