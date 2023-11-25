@@ -12,7 +12,6 @@ entity Interactions_Header {
   PARTNER  : BusinessKey;
   LOG_DATE  : SDate;
   BPCOUNTRY : Country;
-  STATE : String;
 
 };
 entity Interactions_Items {
